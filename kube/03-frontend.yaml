@@ -1,0 +1,43 @@
+# 03-frontend.yaml
+# This file defines the frontend Next.js application.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  type: NodePort # Expose this service outside the cluster
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: real-time-user-tracker-demo:latest
+          imagePullPolicy: Never # Use local Docker image built by Minikube
+          ports:
+            - containerPort: 3000
+          env:
+            # This variable tells the Next.js app where to find the backend API inside the cluster.
+            - name: NEXT_PUBLIC_API_BASE_URL
+              value: 'http://events-api:8001'
+            # This variable tells the react-user-tracker where to send events.
+            - name: NEXT_PUBLIC_TRACKER_ENDPOINT_URL
+              value: 'http://events-collector:8000/track'

@@ -32,7 +32,6 @@ This package has been published to the public npm registry and can be used in ot
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Option 1: Running with Docker Compose (Local Development)](#option-1-running-with-docker-compose-local-development)
-  - [Running the Application](#running-the-application)
 - [How to Use the System](#how-to-use-the-system)
   - [Ports Used](#ports-used)
   - [1. Generate User Events](#1-generate-user-events)
@@ -133,7 +132,7 @@ All commands should be run from the project's root directory.
 1.  **Clone the repository** (if you haven't already):
 
     ```bash
-    git clone <your-repo-url>
+    git clone https://github.com/wilp-bits-2024mt03053/scalable-services-assignment-1.git
     cd scalable-services-assignment-1
     ```
 
@@ -192,6 +191,86 @@ You can use the `make` command to shell into the Kafka container and use its bui
   docker exec -it kafka kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic user-tracking-events --from-beginning
   ```
 
+## API Documentation
+
+### GET /events
+
+- **Description**: Retrieves a list of stored user events from the PostgreSQL database.
+- **URL**: `http://localhost:8001/events`
+- **Method**: `GET`
+- **Success Response**:
+  - **Code**: `200 OK`
+  - **Content**:
+    ```json
+    [
+      {
+        "id": 1,
+        "event_name": "page_view",
+        "timestamp": "2023-10-27T10:00:00Z",
+        "user_id": "user-123",
+        "payload": { "page": "/" }
+      }
+    ]
+    ```
+
+## Production Setup with Minikube (Kubernetes)
+
+For a more production-like environment, you can deploy the entire stack to a local Kubernetes cluster using Minikube.
+
+### Prerequisites for Minikube
+
+- **Minikube**: [Installation Guide](https://minikube.sigs.k8s.io/docs/start/)
+- **kubectl**: [Installation Guide](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- **Docker**: (or another container runtime compatible with Minikube)
+
+### Deployment Steps
+
+A shell script, `deploy-minikube.sh`, is provided to automate the entire deployment process.
+
+1.  **Start the deployment script**:
+    ```bash
+    ./deploy-minikube.sh
+    ```
+
+This script will:
+
+- Check if Minikube is running and start it if necessary.
+- Point your local Docker client to Minikube's Docker daemon.
+- Build the Docker images for all services directly within Minikube's environment using the `make` commands.
+- Apply all Kubernetes manifests located in the `kube/` directory.
+
+### Kubernetes Manifests (`kube/` directory)
+
+The `kube/` directory contains the Kubernetes YAML files that define all the resources needed for the application to run.
+
+- **`01-platform.yaml`**: Deploys the core infrastructure:
+  - **PostgreSQL**: The database for storing events.
+  - **Kafka & Zookeeper**: The messaging system.
+  - **Adminer**: The database management tool.
+- **`02-app-services.yaml`**: Deploys the backend services:
+  - **`real-time-events-collector`**: The service that collects events from the frontend.
+  - **`real-time-events-processor`**: The service that processes events from Kafka and stores them in PostgreSQL.
+  - **`real-time-events-service`**: The API service for retrieving events.
+- **`03-frontend.yaml`**: Deploys the frontend application:
+  - **`real-time-user-tracker-demo`**: The Next.js web application.
+
+### Accessing the Application
+
+Once the script is finished, you can access the services using the following commands:
+
+- **Frontend Application**:
+  ```bash
+  minikube service frontend
+  ```
+- **Adminer (Database Tool)**:
+  ```bash
+  minikube service adminer
+  ```
+- **Events API**:
+  ```bash
+  minikube service events-api --url
+  ```
+
 ## Makefile Commands
 
 The `Makefile` provides convenient shortcuts for managing the Docker environment.
@@ -205,3 +284,7 @@ The `Makefile` provides convenient shortcuts for managing the Docker environment
 | `make logs`                | Tails the logs from all running services.                                        |
 | `make ps`                  | Shows the status of all running containers.                                      |
 | `make user-tracking-topic` | Manually creates the `user-tracking-events` Kafka topic.                         |
+| `make build-collector`     | Builds the Docker image for the `real-time-events-collector` service.            |
+| `make build-processor`     | Builds the Docker image for the `real-time-events-processor` service.            |
+| `make build-service`       | Builds the Docker image for the `real-time-events-service` service.              |
+| `make build-demo`          | Builds the Docker image for the `real-time-user-tracker-demo` service.           |

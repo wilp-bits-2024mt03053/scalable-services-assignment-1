@@ -1,0 +1,166 @@
+# 02-app-services.yaml
+# This file defines the backend application services and the Adminer DB tool.
+
+# --- Event Collector Service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events-collector
+spec:
+  selector:
+    app: events-collector
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: events-collector
+  template:
+    metadata:
+      labels:
+        app: events-collector
+    spec:
+      containers:
+        - name: events-collector
+          image: real-time-events-collector:latest
+          imagePullPolicy: Never # Use local Docker image built by Minikube
+          ports:
+            - containerPort: 8000
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
+
+# --- Event Processor Service ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: events-processor
+  template:
+    metadata:
+      labels:
+        app: events-processor
+    spec:
+      containers:
+        - name: events-processor
+          image: real-time-events-processor:latest
+          imagePullPolicy: Never
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
+            - name: POSTGRES_HOST
+              value: "postgres"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+
+# --- Events API Service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events-api
+spec:
+  type: NodePort # Expose this service outside the cluster
+  selector:
+    app: events-api
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: events-api
+  template:
+    metadata:
+      labels:
+        app: events-api
+    spec:
+      containers:
+        - name: events-api
+          image: real-time-events-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8001
+          env:
+            - name: POSTGRES_HOST
+              value: "postgres"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+
+# --- Adminer Service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adminer
+spec:
+  type: NodePort
+  selector:
+    app: adminer
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adminer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: adminer
+  template:
+    metadata:
+      labels:
+        app: adminer
+    spec:
+      containers:
+        - name: adminer
+          image: adminer:latest
+          ports:
+            - containerPort: 8080

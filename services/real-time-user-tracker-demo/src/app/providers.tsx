@@ -5,7 +5,8 @@ import { TrackerProvider } from 'react-user-tracker';
 import { VisitorProvider } from '@/context/VisitorContext';
 
 const trackerConfig = {
-  endpointUrl: 'http://localhost:8000/track',
+  // Use an environment variable for the endpoint, falling back to localhost for local dev.
+  endpointUrl: process.env.NEXT_PUBLIC_TRACKER_ENDPOINT_URL || 'http://localhost:8000/track',
   batchSize: 5,
   flushInterval: 5000,
   appName: 'Next.js App',
