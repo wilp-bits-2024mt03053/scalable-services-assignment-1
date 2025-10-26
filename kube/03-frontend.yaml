@@ -1,5 +1,8 @@
+# ==========================================================
 # 03-frontend.yaml
-# This file defines the frontend Next.js application.
+# Frontend Next.js Application (served via Node)
+# Compatible with Minikube + Scalable Services namespace
+# ==========================================================
 
 apiVersion: v1
 kind: Service
@@ -7,13 +10,14 @@ metadata:
   name: frontend
   namespace: scalable-services
 spec:
-  type: NodePort # Expose this service outside the cluster
+  type: NodePort
   selector:
     app: frontend
   ports:
     - protocol: TCP
       port: 3000
       targetPort: 3000
+      nodePort: 30030
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -33,13 +37,24 @@ spec:
       containers:
         - name: frontend
           image: real-time-user-tracker-demo:latest
-          imagePullPolicy: Never # Use local Docker image built by Minikube
+          imagePullPolicy: Never # Change to IfNotPresent if image comes from registry
           ports:
             - containerPort: 3000
           env:
-            # This variable tells the Next.js app where to find the backend API inside the cluster.
+            # Backend API inside the cluster
             - name: NEXT_PUBLIC_API_BASE_URL
               value: 'http://events-api:8001'
-            # This variable tells the react-user-tracker where to send events.
-            - name: NEXT_PUBLIC_TRACKER_ENDPOINT_URL
-              value: 'http://events-collector:8000/track'
+
+          # Health checks for stability
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 30

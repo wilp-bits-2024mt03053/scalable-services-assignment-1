@@ -1,5 +1,8 @@
+# ==========================================================
 # 02-app-services.yaml
-# This file defines the backend application services and the Adminer DB tool.
+# Backend application services + Adminer DB UI
+# Compatible with Minikube + Kafka external/internal setup
+# ==========================================================
 
 # --- Event Collector Service ---
 apiVersion: v1
@@ -33,12 +36,24 @@ spec:
       containers:
         - name: events-collector
           image: real-time-events-collector:latest
-          imagePullPolicy: Never # Use local Docker image built by Minikube
+          imagePullPolicy: Never   # Change to IfNotPresent if using Docker Hub
           ports:
             - containerPort: 8000
           env:
             - name: KAFKA_BOOTSTRAP_SERVERS
-              value: "kafka:9092"
+              value: "kafka.scalable-services.svc.cluster.local:9092"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 15
 
 # --- Event Processor Service ---
 apiVersion: apps/v1
@@ -62,7 +77,7 @@ spec:
           imagePullPolicy: Never
           env:
             - name: KAFKA_BOOTSTRAP_SERVERS
-              value: "kafka:9092"
+              value: "kafka.scalable-services.svc.cluster.local:9092"
             - name: POSTGRES_HOST
               value: "postgres"
             - name: POSTGRES_USER
@@ -80,6 +95,22 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_DB
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "pg_isready -h postgres -p 5432 -U $POSTGRES_USER"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "pg_isready -h postgres -p 5432 -U $POSTGRES_USER"
+            initialDelaySeconds: 20
+            periodSeconds: 30
 
 # --- Events API Service ---
 apiVersion: v1
@@ -88,13 +119,14 @@ metadata:
   name: events-api
   namespace: scalable-services
 spec:
-  type: NodePort # Expose this service outside the cluster
+  type: NodePort
   selector:
     app: events-api
   ports:
     - protocol: TCP
       port: 8001
       targetPort: 8001
+      nodePort: 30081
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -135,8 +167,20 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_DB
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 10
+            periodSeconds: 20
 
-# --- Adminer Service ---
+# --- Adminer (Database UI) ---
 apiVersion: v1
 kind: Service
 metadata:
@@ -150,6 +194,7 @@ spec:
     - protocol: TCP
       port: 8080
       targetPort: 8080
+      nodePort: 30080
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -171,3 +216,15 @@ spec:
           image: adminer:latest
           ports:
             - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20

@@ -1,7 +1,15 @@
+# ==========================================================
 # 01-platform.yaml
-# This file defines the core stateful services: Zookeeper, Kafka, and PostgreSQL.
+# Core platform services for Minikube: Zookeeper, Kafka, PostgreSQL
+# ==========================================================
 
-# --- Zookeeper StatefulSet and Service ---
+# --- Namespace ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: scalable-services
+---
+# --- Zookeeper Service & StatefulSet ---
 apiVersion: v1
 kind: Service
 metadata:
@@ -38,28 +46,33 @@ spec:
             - containerPort: 2181
           env:
             - name: ZOOKEEPER_CLIENT_PORT
-              value: "2181"
+              value: '2181'
             - name: ZOOKEEPER_TICK_TIME
-              value: "2000"
+              value: '2000'
           readinessProbe:
             tcpSocket:
               port: 2181
             initialDelaySeconds: 5
             periodSeconds: 10
-
-# --- Kafka StatefulSet and Service ---
+---
+# --- Kafka Service & StatefulSet ---
 apiVersion: v1
 kind: Service
 metadata:
   name: kafka
   namespace: scalable-services
 spec:
+  type: NodePort
   selector:
     app: kafka
   ports:
-    - protocol: TCP
+    - name: internal
       port: 9092
       targetPort: 9092
+    - name: external
+      port: 9094
+      targetPort: 9094
+      nodePort: 30092
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -83,24 +96,36 @@ spec:
           image: confluentinc/cp-kafka:7.0.1
           ports:
             - containerPort: 9092
+            - containerPort: 9094
           env:
             - name: KAFKA_BROKER_ID
-              value: "1"
+              value: '1'
             - name: KAFKA_ZOOKEEPER_CONNECT
-              value: "zookeeper:2181"
+              value: 'zookeeper:2181'
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-              value: "PLAINTEXT:PLAINTEXT"
+              value: 'PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT'
             - name: KAFKA_LISTENERS
-              value: "PLAINTEXT://:9092"
+              value: 'PLAINTEXT://:9092,EXTERNAL://:9094'
+            - name: MINIKUBE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            # Kafka will get the actual Minikube IP substituted by your script via envsubst
             - name: KAFKA_ADVERTISED_LISTENERS
-              value: "PLAINTEXT://kafka:9092"
+              value: 'PLAINTEXT://kafka.scalable-services.svc.cluster.local:9092,EXTERNAL://$MINIKUBE_IP:30092'
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: 'PLAINTEXT'
             - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
-              value: "1"
+              value: '1'
             - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
-              value: "0"
+              value: '0'
+          readinessProbe:
+            tcpSocket:
+              port: 9092
+            initialDelaySeconds: 10
+            periodSeconds: 10
 ---
-
-# --- PostgreSQL StatefulSet, Service, and Secret ---
+# --- PostgreSQL Secret, Service & StatefulSet ---
 apiVersion: v1
 kind: Secret
 metadata:
@@ -108,9 +133,9 @@ metadata:
   namespace: scalable-services
 type: Opaque
 stringData:
-  POSTGRES_USER: "user"
-  POSTGRES_PASSWORD: "password"
-  POSTGRES_DB: "tracking_db"
+  POSTGRES_USER: 'user'
+  POSTGRES_PASSWORD: 'password'
+  POSTGRES_DB: 'tracking_db'
 ---
 apiVersion: v1
 kind: Service

@@ -1,6 +1,6 @@
 # Real-Time User Event Tracking and Analytics Platform
 
-Scalable Services Assignment 1
+This project implements a scalable, real-time data streaming pipeline designed to capture, process, and analyze user interaction events from a web application. It serves as a comprehensive example of a modern, microservices-based architecture using containerization and orchestration.
 
 ## Authors
 
@@ -9,282 +9,197 @@ Scalable Services Assignment 1
 - Deep Pokala {2024mt03042 }
 - Jagriti Sharma {2024mt03116}
 
-## Project Details
-
-This project implements a comprehensive real-time data streaming pipeline. The system demonstrates end-to-end event processing where user interactions on a web application are captured, sent to a data stream, processed in real-time, and stored in a database for analytics.
-
-The architecture showcases modern streaming data processing patterns, containerization with Docker, and resilient service integration. The implementation serves as a foundation for understanding distributed streaming systems and can be extended for production-scale data processing scenarios.
-
-### Custom Tracking Hook: `react-user-tracker`
-
-A key component of this project is the custom-built React hook, **`react-user-tracker`**, which is responsible for capturing frontend events. It is designed for performance and scalability by batching events and sending them asynchronously to the backend collector.
-
-This package has been published to the public npm registry and can be used in other projects.
-
-- **NPM Package**: react-user-tracker
-- **Version**: 0.1.2
-
 ## Table of Contents
 
 - [Architecture Overview](#architecture-overview)
-- [Is it Scalable?](#is-it-scalable)
 - [Core Technologies](#core-technologies)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
-  - [Option 1: Running with Docker Compose (Local Development)](#option-1-running-with-docker-compose-local-development)
-- [How to Use the System](#how-to-use-the-system)
-  - [Ports Used](#ports-used)
-  - [1. Generate User Events](#1-generate-user-events)
-  - [2. View Data in the Database](#2-view-data-in-the-database)
-  - [3. Inspect Kafka Topics (Optional)](#3-inspect-kafka-topics-optional)
-  - [4. View the Analytics Dashboard](#4-view-the-analytics-dashboard)
-- [API Documentation](#api-documentation)
-  - [GET /events](#get-events)
-- [Production Setup with Minikube (Kubernetes)](#production-setup-with-minikube-kubernetes)
-  - [Prerequisites for Minikube](#prerequisites-for-minikube)
-  - [Deployment Steps](#deployment-steps)
+  - [Option 1: Deploy to Kubernetes with Minikube](#option-1-deploy-to-kubernetes-with-minikube)
+  - [Option 2: Run Locally with Docker Compose](#option-2-run-locally-with-docker-compose)
+- [Accessing Services](#accessing-services)
+- [Code Formatting](#code-formatting)
 - [Makefile Commands](#makefile-commands)
+- [Directory Structure](#directory-structure)
 
 ## Architecture Overview
 
-The system is designed as a multi-stage pipeline that captures user events from a web frontend and processes them in real-time, ultimately storing them in a database for analytics.
+The system is designed as a multi-stage pipeline that captures user events from a web frontend, processes them in real-time, and stores them in a database for analytics.
 
 ```mermaid
 graph TD
     subgraph "Browser"
-        A["React Frontend App<br>(localhost:3000)"]
+        A["React Frontend App"]
     end
 
     subgraph "Data Ingestion"
-        B["Event Collector<br>(Python/FastAPI)"]
+        B["Event Collector (FastAPI)"]
     end
 
     subgraph "Streaming Platform"
-        C["Apache Kafka<br>(Topic: user-tracking-events)"]
+        C["Apache Kafka"]
         D[Zookeeper]
     end
 
     subgraph "Data Processing & Storage"
-        E["Event Processor<br>(Python Consumer)"]
-        F["PostgreSQL Database<br>(Table: user_events)"]
+        E["Event Processor (Python)"]
+        F["PostgreSQL Database"]
     end
-    subgraph "Data Serving"
-        H["Events API Service<br>(Python/FastAPI)"]
-    end
-
-
-    subgraph "Developer Tooling"
-        G["Adminer<br>(localhost:8080)"]
+    subgraph "Data Serving & Tooling"
+        H["Events API (FastAPI)"]
+        G["Adminer"]
     end
 
-    A -- "1. User interaction (click, hover)" --> A
-    A -- "2. Batched HTTP POST events" --> B
-    B -- "3. Produces event messages" --> C
-    C -- "Manages Kafka Cluster" --> D
-    E -- "4. Consumes event messages" --> C
-    E -- "5. Inserts processed data" --> F
-    H -- "6. Queries events" --> F
-    G -- "Inspects Database" --> F
+    A -- "1. User interactions" --> A
+    A -- "2. Batched HTTP POST" --> B
+    B -- "3. Produces events" --> C
+    C -- "Manages cluster" --> D
+    E -- "4. Consumes events" --> C
+    E -- "5. Inserts data" --> F
+    H -- "6. Queries data" --> F
+    G -- "Inspects DB" --> F
 ```
 
 **Data Flow:**
 
-1.  **Event Generation**: A user interacts with the **React Frontend App**. A custom tracking script (`EventTracker`) batches these events (e.g., clicks, hovers).
+1.  **Event Generation**: A user interacts with the **React Frontend App**. A custom tracking hook (`react-user-tracker`) batches these events.
 2.  **Ingestion**: The batched events are sent via an HTTP POST request to the **Event Collector** service.
-3.  **Streaming**: The Event Collector acts as a Kafka producer, publishing the events into the `user-tracking-events` topic in **Apache Kafka**.
-4.  **Processing**: The **Event Processor**, a Python-based Kafka consumer, subscribes to the topic, reads the events in real-time, validates them, and prepares them for storage.
+3.  **Streaming**: The collector publishes the events into a `user-tracking-events` topic in **Apache Kafka**, which acts as a durable and scalable buffer.
+4.  **Processing**: The **Event Processor** (a Python-based Kafka consumer) subscribes to the topic, reads events in real-time, and validates them.
 5.  **Storage**: The processor inserts the structured event data into the `user_events` table in the **PostgreSQL** database.
-6.  **Inspection**: Developers can use **Adminer** to connect to the database and query the stored events.
-
-## Is it Scalable?
-
-Yes, the architecture is designed for scalability and resilience:
-
-- **Stateless Services**: The `real-time-events-collector` and `real-time-events-processor` are stateless. You can run multiple instances of each to handle increased load.
-- **Kafka as a Buffer**: Kafka acts as a durable, distributed buffer. It decouples the ingestion layer from the processing layer, allowing the system to handle spikes in traffic without losing data.
-- **Parallel Processing**: By running multiple instances of the `real-time-events-processor` with the same `group_id`, Kafka will automatically distribute the topic partitions among them. This enables parallel consumption and processing of events, significantly increasing throughput.
-- **Containerization**: All services are containerized with Docker, making it easy to deploy, manage, and scale them independently across different environments.
+6.  **Serving**: The **Events API** provides an endpoint to query the stored events.
+7.  **Inspection**: Developers can use **Adminer** to connect to the database and view the data.
 
 ## Core Technologies
 
 - **Frontend**: React (Next.js)
-- **Backend Services**: Python
+- **Backend Services**: Python (FastAPI)
 - **Message Broker**: Apache Kafka & Zookeeper
 - **Database**: PostgreSQL
-- **Containerization**: Docker & Docker Compose
-- **Orchestration/Build**: `make`
+- **Containerization**: Docker
+- **Orchestration**: Kubernetes (via Minikube), Docker Compose
+- **Build/Task Runner**: `make`
 
 ## Getting Started
 
-Follow these instructions to get the entire platform running on your local machine.
+This project can be run in two ways: in a production-like Kubernetes environment using Minikube, or in a local development environment using Docker Compose.
 
 ### Prerequisites
 
-- Docker
-- **For Local Dev**: Docker Compose (usually included with Docker Desktop)
-- `make` (available on macOS and Linux, or via Chocolatey on Windows)
-- **For Kubernetes**: Minikube
+Ensure you have the following tools installed:
+- **Docker**: [Installation Guide](https://docs.docker.com/get-docker/)
+- **Minikube**: [Installation Guide](https://minikube.sigs.k8s.io/docs/start/)
+- **kubectl**: [Installation Guide](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- **make**: Available on macOS/Linux. For Windows, you can use Chocolatey or WSL.
+- **envsubst**: Part of the `gettext` package. On macOS: `brew install gettext`.
 
-### Option 1: Running with Docker Compose (Local Development)
+### Option 1: Deploy to Kubernetes with Minikube
 
-All commands should be run from the project's root directory.
+This is the recommended approach for a complete, production-like deployment. The `deploy-minikube.sh` script automates the entire process.
 
-1.  **Clone the repository** (if you haven't already):
-
+1.  **Clone the repository**:
     ```bash
     git clone https://github.com/wilp-bits-2024mt03053/scalable-services-assignment-1.git
     cd scalable-services-assignment-1
     ```
 
-2.  **Deploy the entire stack**:
-    This single command will clean up any old containers/volumes, build fresh images for your services, and start everything in the correct order.
+2.  **Run the deployment script**:
+    ```bash
+    ./deploy-minikube.sh deploy
+    ```
+    This script will:
+    - Start Minikube if it's not already running.
+    - Set the Docker environment to point to Minikube's Docker daemon.
+    - Build all service images directly within Minikube.
+    - Deploy all Kubernetes resources from the `/kube` directory.
+    - Wait for all deployments and statefulsets to be ready.
+
+3.  **Cleaning up**:
+    To tear down the entire Minikube stack, including the cluster and all resources:
+    ```bash
+    ./deploy-minikube.sh clean
+    ```
+
+### Option 2: Run Locally with Docker Compose
+
+For local development and testing, you can use Docker Compose and `make`.
+
+1.  **Clone the repository** (if you haven't already).
+
+2.  **Deploy the stack**:
+    This command builds the images and starts all services.
     ```bash
     make deploy
     ```
 
-The first time you run this, it may take a few minutes to download the base Docker images and build your services. Subsequent runs will be much faster.
-
-## How to Use the System
-
-Once `make deploy` is complete, all services are running and ready for use.
-
-### Ports Used
-
-The following ports are exposed on `localhost` for the various services:
-
-| Port   | Service                       | Description                                            |
-| :----- | :---------------------------- | :----------------------------------------------------- |
-| `3000` | `real-time-user-tracker-demo` | The main React/Next.js frontend application.           |
-| `5432` | `postgres`                    | The PostgreSQL database where events are stored.       |
-| `8000` | `real-time-events-collector`  | The FastAPI service that receives events from the web. |
-| `8001` | `real-time-events-service`    | The FastAPI service that serves stored events via API. |
-| `8080` | `adminer`                     | The web-based database management tool for PostgreSQL. |
-| `9092` | `kafka`                       | The Apache Kafka message broker for event streaming.   |
-| `2181` | `zookeeper`                   | The Zookeeper service required by Kafka.               |
-
-### 1. Generate User Events
-
-- Open your web browser and navigate to the frontend application: **http://localhost:3000**.
-- Click around the UI, navigate to the "Authors" page, and hover over different elements. Each interaction is an event that is being sent through the pipeline.
-
-### 2. View Data in the Database
-
-- Open a new browser tab and navigate to Adminer: **http://localhost:8080**.
-- Log in with the following credentials:
-  - **System**: `PostgreSQL`
-  - **Server**: `postgres`
-  - **Username**: `user`
-  - **Password**: `password`
-  - **Database**: `tracking_db`
-- Once logged in, click on the `user_events` table on the left. You will see the raw event data that was generated by your interactions on the website.
-
-### 3. Inspect Kafka Topics (Optional)
-
-You can use the `make` command to shell into the Kafka container and use its built-in tools.
-
-- **List all topics**:
-  ```bash
-  docker exec -it kafka kafka-topics.sh --bootstrap-server localhost:9092 --list
-  ```
-- **Watch messages in the `user-tracking-events` topic**:
-  ```bash
-  docker exec -it kafka kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic user-tracking-events --from-beginning
-  ```
-
-## API Documentation
-
-### GET /events
-
-- **Description**: Retrieves a list of stored user events from the PostgreSQL database.
-- **URL**: `http://localhost:8001/events`
-- **Method**: `GET`
-- **Success Response**:
-  - **Code**: `200 OK`
-  - **Content**:
-    ```json
-    [
-      {
-        "id": 1,
-        "event_name": "page_view",
-        "timestamp": "2023-10-27T10:00:00Z",
-        "user_id": "user-123",
-        "payload": { "page": "/" }
-      }
-    ]
-    ```
-
-## Production Setup with Minikube (Kubernetes)
-
-For a more production-like environment, you can deploy the entire stack to a local Kubernetes cluster using Minikube.
-
-### Prerequisites for Minikube
-
-- **Minikube**: [Installation Guide](https://minikube.sigs.k8s.io/docs/start/)
-- **kubectl**: [Installation Guide](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-- **Docker**: (or another container runtime compatible with Minikube)
-
-### Deployment Steps
-
-A shell script, `deploy-minikube.sh`, is provided to automate the entire deployment process.
-
-1.  **Start the deployment script**:
+3.  **Stopping the stack**:
+    To stop and remove all containers, networks, and volumes:
     ```bash
-    ./deploy-minikube.sh
+    make clean
     ```
 
-This script will:
+## Accessing Services
 
-- Check if Minikube is running and start it if necessary.
-- Point your local Docker client to Minikube's Docker daemon.
-- Build the Docker images for all services directly within Minikube's environment using the `make` commands.
-- Apply all Kubernetes manifests located in the `kube/` directory.
+### On Minikube
 
-### Kubernetes Manifests (`kube/` directory)
+The `deploy-minikube.sh` script will provide you with the correct commands to access the services.
 
-The `kube/` directory contains the Kubernetes YAML files that define all the resources needed for the application to run.
+- **Frontend Application**: `minikube service frontend -n scalable-services`
+- **Adminer (Database UI)**: `minikube service adminer -n scalable-services`
+- **Events API**: `minikube service events-api -n scalable-services --url`
 
-- **`01-platform.yaml`**: Deploys the core infrastructure:
-  - **PostgreSQL**: The database for storing events.
-  - **Kafka & Zookeeper**: The messaging system.
-  - **Adminer**: The database management tool.
-- **`02-app-services.yaml`**: Deploys the backend services:
-  - **`real-time-events-collector`**: The service that collects events from the frontend.
-  - **`real-time-events-processor`**: The service that processes events from Kafka and stores them in PostgreSQL.
-  - **`real-time-events-service`**: The API service for retrieving events.
-- **`03-frontend.yaml`**: Deploys the frontend application:
-  - **`real-time-user-tracker-demo`**: The Next.js web application.
+### On Docker Compose
 
-### Accessing the Application
+The services are exposed on `localhost` at the following ports:
 
-Once the script is finished, you can access the services using the following commands:
+| Port   | Service                       | URL                               |
+| :----- | :---------------------------- | :-------------------------------- |
+| `3000` | Frontend App                  | [http://localhost:3000](http://localhost:3000) |
+| `8080` | Adminer (Database UI)         | [http://localhost:8080](http://localhost:8080) |
+| `8001` | Events API                    | [http://localhost:8001/events](http://localhost:8001/events) |
+| `8000` | Event Collector               | N/A (used internally by frontend) |
 
-- **Frontend Application**:
-  ```bash
-  minikube service frontend
-  ```
-- **Adminer (Database Tool)**:
-  ```bash
-  minikube service adminer
-  ```
-- **Events API**:
-  ```bash
-  minikube service events-api --url
-  ```
+To log in to Adminer, use the following credentials:
+- **System**: `PostgreSQL`
+- **Server**: `postgres`
+- **Username**: `user`
+- **Password**: `password`
+- **Database**: `tracking_db`
+
+## Code Formatting
+
+A helper script is provided to format all code in the repository.
+
+```bash
+./formatter.sh
+```
 
 ## Makefile Commands
 
-The `Makefile` provides convenient shortcuts for managing the Docker environment.
+The `Makefile` provides shortcuts for managing the Docker Compose environment.
 
-| Command                    | Description                                                                      |
-| :------------------------- | :------------------------------------------------------------------------------- |
-| `make deploy`              | **(Recommended)** Cleans the environment and deploys all services from scratch.  |
-| `make up`                  | Builds and starts all services without cleaning first.                           |
-| `make down`                | Stops and removes all containers and networks.                                   |
-| `make clean`               | Stops and removes containers, networks, **and volumes** (all data will be lost). |
-| `make logs`                | Tails the logs from all running services.                                        |
-| `make ps`                  | Shows the status of all running containers.                                      |
-| `make user-tracking-topic` | Manually creates the `user-tracking-events` Kafka topic.                         |
-| `make build-collector`     | Builds the Docker image for the `real-time-events-collector` service.            |
-| `make build-processor`     | Builds the Docker image for the `real-time-events-processor` service.            |
-| `make build-service`       | Builds the Docker image for the `real-time-events-service` service.              |
-| `make build-demo`          | Builds the Docker image for the `real-time-user-tracker-demo` service.           |
+| Command                | Description                                                              |
+| :--------------------- | :----------------------------------------------------------------------- |
+| `make deploy`          | Cleans the environment and deploys all services from scratch.            |
+| `make up`              | Builds and starts all services without cleaning.                         |
+| `make down`            | Stops and removes all containers and networks.                           |
+| `make clean`           | Stops and removes containers, networks, **and volumes** (data is lost).  |
+| `make logs`            | Tails the logs from all running services.                                |
+| `make build-*`         | Builds a specific service image (e.g., `make build-collector`).          |
+
+## Directory Structure
+
+```
+.
+├── kube/                   # Kubernetes manifests
+├── services/               # Source code for all microservices
+│   ├── react-user-tracker/         # The reusable React tracking hook
+│   ├── real-time-events-collector/ # Ingestion service
+│   ├── real-time-events-processor/ # Kafka consumer service
+│   ├── real-time-events-service/   # API service
+│   └── real-time-user-tracker-demo/  # Frontend demo application
+├── deploy-minikube.sh      # Main deployment script for Kubernetes
+├── docker-compose.yml      # Docker Compose file for local development
+├── Makefile                # Makefile for Docker Compose management
+└── README.md               # This file
+```
