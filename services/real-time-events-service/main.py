@@ -60,9 +60,9 @@ def get_events(
 
     if event_type:
         # If the request is for 'HOVER', fetch both enter and leave events.
-        if event_type.upper() == 'HOVER':
+        if event_type.upper() == "HOVER":
             conditions.append("event_type IN (%s, %s)")
-            params.extend(['HOVER_ENTER', 'HOVER_LEAVE'])
+            params.extend(["HOVER_ENTER", "HOVER_LEAVE"])
         else:
             conditions.append("event_type = %s")
             params.append(event_type)

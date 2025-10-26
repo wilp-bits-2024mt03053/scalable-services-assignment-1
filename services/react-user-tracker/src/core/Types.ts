@@ -57,8 +57,8 @@ export interface TrackerConfig {
 export interface UserEvent {
   timestamp: number;
   event_id: string;
-  event_type: 'CLICK' | 'HOVER_ENTER' | 'HOVER_LEAVE' | 'PAGE_VIEW' | string;
-  location_type: 'COMPONENT' | 'PAGE';
+  event_type: "CLICK" | "HOVER_ENTER" | "HOVER_LEAVE" | "PAGE_VIEW" | string;
+  location_type: "COMPONENT" | "PAGE";
   component_name?: string;
   page_path: string;
   page_title: string;

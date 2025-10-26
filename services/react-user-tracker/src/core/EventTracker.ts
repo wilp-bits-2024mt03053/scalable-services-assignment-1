@@ -1,7 +1,7 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
-import { flushQueue } from './EventProcessor';
-import { TrackerConfig, UserEvent } from './Types';
+import { flushQueue } from "./EventProcessor";
+import { TrackerConfig, UserEvent } from "./Types";
 
 export class EventTracker {
   private static instance: EventTracker | null = null;
@@ -24,7 +24,7 @@ export class EventTracker {
    */
   public static getInstance(config?: TrackerConfig): EventTracker {
     if (!EventTracker.instance) {
-      if (!config) throw new Error('TrackerConfig required for initialization');
+      if (!config) throw new Error("TrackerConfig required for initialization");
       EventTracker.instance = new EventTracker(config);
     }
     return EventTracker.instance;
@@ -45,8 +45,8 @@ export class EventTracker {
       page_path: window.location.pathname,
       page_title: document.title,
       user_metadata: event.user_metadata || {},
-      event_type: event.event_type || 'UNKNOWN',
-      location_type: event.location_type || 'PAGE',
+      event_type: event.event_type || "UNKNOWN",
+      location_type: event.location_type || "PAGE",
     } as UserEvent;
     this.eventQueue.push(enriched);
     this.checkAndFlush();

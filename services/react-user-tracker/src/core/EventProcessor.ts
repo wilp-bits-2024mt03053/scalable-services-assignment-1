@@ -1,4 +1,4 @@
-import { TrackerConfig, UserEvent } from './Types';
+import { TrackerConfig, UserEvent } from "./Types";
 
 /**
  * Flushes a batch of user events to the backend endpoint or logs to console in debug mode.
@@ -11,20 +11,20 @@ import { TrackerConfig, UserEvent } from './Types';
  */
 export async function flushQueue(
   batch: UserEvent[],
-  config: TrackerConfig
+  config: TrackerConfig,
 ): Promise<void> {
   if (config.debug) {
-    console.log('[react-user-tracker] Debug mode - batch:', batch);
+    console.log("[react-user-tracker] Debug mode - batch:", batch);
     return;
   }
   if (config.log) {
-    console.log('[react-user-tracker] Log enabled - batch:', batch);
+    console.log("[react-user-tracker] Log enabled - batch:", batch);
   }
   try {
     const response = await fetch(config.endpointUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         events: batch,
@@ -33,9 +33,9 @@ export async function flushQueue(
       }),
     });
     if (config.log) {
-      console.log('[react-user-tracker] Response:', await response.text());
+      console.log("[react-user-tracker] Response:", await response.text());
     }
   } catch (error) {
-    console.error('[react-user-tracker] Failed to send batch:', error);
+    console.error("[react-user-tracker] Failed to send batch:", error);
   }
 }

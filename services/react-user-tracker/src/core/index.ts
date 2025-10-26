@@ -1,3 +1,3 @@
-export * from './EventProcessor';
-export * from './EventTracker';
-export * from './Types';
+export * from "./EventProcessor";
+export * from "./EventTracker";
+export * from "./Types";

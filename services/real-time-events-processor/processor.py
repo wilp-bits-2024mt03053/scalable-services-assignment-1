@@ -28,16 +28,25 @@ def get_db_connection():
             return conn
         except OperationalError as e:
             if attempt >= max_attempts:
-                print(f"Failed to connect to PostgreSQL after {attempt} attempts: {e}", file=sys.stderr, flush=True)
+                print(
+                    f"Failed to connect to PostgreSQL after {attempt} attempts: {e}",
+                    file=sys.stderr,
+                    flush=True,
+                )
                 sys.exit(1)
-            print(f"PostgreSQL not ready yet (attempt {attempt}/{max_attempts}). Retrying in {backoff_seconds}s...", file=sys.stderr, flush=True)
+            print(
+                f"PostgreSQL not ready yet (attempt {attempt}/{max_attempts}). Retrying in {backoff_seconds}s...",
+                file=sys.stderr,
+                flush=True,
+            )
             time.sleep(backoff_seconds)
 
 
 def create_table(conn):
     """Creates the user_events table if it doesn't exist."""
     with conn.cursor() as cur:
-        cur.execute("""
+        cur.execute(
+            """
             CREATE TABLE IF NOT EXISTS user_events (
                 event_id UUID PRIMARY KEY,
                 event_type VARCHAR(50) NOT NULL,
@@ -50,7 +59,8 @@ def create_table(conn):
                 full_event_data JSONB,
                 received_at TIMESTAMPTZ DEFAULT NOW()
             );
-        """)
+        """
+        )
         conn.commit()
         print("Table 'user_events' is ready.", flush=True)
 
@@ -74,7 +84,7 @@ def main() -> None:
         enable_auto_commit=True,
         value_deserializer=lambda v: json.loads(v.decode("utf-8")),
         reconnect_backoff_ms=2000,
-        retry_backoff_ms=500
+        retry_backoff_ms=500,
     )
 
     print(f"Consumer connected to Kafka, topic '{topic}'", flush=True)
@@ -91,15 +101,17 @@ def main() -> None:
                     ) VALUES (%s, %s, %s, %s, %s, %s, to_timestamp(%s / 1000.0), %s, %s)
                     ON CONFLICT (event_id) DO NOTHING;
                     """,
-                    (event.get('event_id'),
-                     event.get('event_type'),
-                     event.get('location_type'),
-                     event.get('component_name'),
-                     event.get('page_path'),
-                     event.get('page_title'),
-                     event.get('timestamp'),
-                     json.dumps(event.get('user_metadata', {})),
-                     json.dumps(event))
+                    (
+                        event.get("event_id"),
+                        event.get("event_type"),
+                        event.get("location_type"),
+                        event.get("component_name"),
+                        event.get("page_path"),
+                        event.get("page_title"),
+                        event.get("timestamp"),
+                        json.dumps(event.get("user_metadata", {})),
+                        json.dumps(event),
+                    ),
                 )
                 conn.commit()
     except KeyboardInterrupt:
@@ -107,6 +119,7 @@ def main() -> None:
     finally:
         consumer.close()
         conn.close()
+
 
 if __name__ == "__main__":
     main()

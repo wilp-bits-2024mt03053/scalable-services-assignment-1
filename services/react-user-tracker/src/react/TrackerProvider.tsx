@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from "react";
 
-import { EventTracker } from '../core/EventTracker';
-import { TrackerConfig } from '../core/Types';
-import { TrackerContext } from './TrackerContext';
+import { EventTracker } from "../core/EventTracker";
+import { TrackerConfig } from "../core/Types";
+import { TrackerContext } from "./TrackerContext";
 
 /**
  * Props for TrackerProvider component.
@@ -36,17 +36,17 @@ export const TrackerProvider: React.FC<TrackerProviderProps> = ({
         tag: target.tagName,
         id: target.id,
         className: target.className,
-        text: target.textContent || '',
+        text: target.textContent || "",
       };
       tracker.trackEvent({
-        event_type: 'CLICK',
-        location_type: 'PAGE',
+        event_type: "CLICK",
+        location_type: "PAGE",
         dom_info,
       });
     };
-    document.addEventListener('click', handlePageClick);
+    document.addEventListener("click", handlePageClick);
     return () => {
-      document.removeEventListener('click', handlePageClick);
+      document.removeEventListener("click", handlePageClick);
     };
   }, [tracker]);
 

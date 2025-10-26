@@ -1,3 +1,3 @@
-export * from './TrackerContext';
-export * from './TrackerProvider';
-export * from './useTracker';
+export * from "./TrackerContext";
+export * from "./TrackerProvider";
+export * from "./useTracker";

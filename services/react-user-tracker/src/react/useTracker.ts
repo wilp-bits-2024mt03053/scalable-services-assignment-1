@@ -1,7 +1,7 @@
-import { useCallback, useContext } from 'react';
+import { useCallback, useContext } from "react";
 
-import { TrackerProps } from '../core/Types';
-import { TrackerContext } from './TrackerContext';
+import { TrackerProps } from "../core/Types";
+import { TrackerContext } from "./TrackerContext";
 
 /**
  * useTracker hook returns event handler props for tracking user interactions on a component.
@@ -18,17 +18,17 @@ export const useTracker = (componentName: string): TrackerProps => {
     (event_type: string, e: React.MouseEvent<any>) => {
       tracker?.trackEvent({
         event_type,
-        location_type: 'COMPONENT',
+        location_type: "COMPONENT",
         component_name: componentName,
         user_metadata: {},
       });
     },
-    [tracker, componentName]
+    [tracker, componentName],
   );
 
   return {
-    onClick: (e) => track('CLICK', e),
-    onMouseEnter: (e) => track('HOVER_ENTER', e),
-    onMouseLeave: (e) => track('HOVER_LEAVE', e),
+    onClick: (e) => track("CLICK", e),
+    onMouseEnter: (e) => track("HOVER_ENTER", e),
+    onMouseLeave: (e) => track("HOVER_LEAVE", e),
   };
 };
