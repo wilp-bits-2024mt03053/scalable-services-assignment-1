@@ -5,6 +5,8 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
+NAMESPACE="scalable-services"
+
 echo "🚀 Starting Minikube Deployment..."
 
 # --- 1. Check and Start Minikube ---
@@ -16,33 +18,37 @@ else
     echo "--> Minikube is already running."
 fi
 
-# --- 2. Set Docker Environment ---
+# --- 2. Create Namespace ---
+echo "--> Creating namespace '${NAMESPACE}' if it doesn't exist..."
+kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+
+# --- 3. Set Docker Environment ---
 echo "--> Setting Docker environment to Minikube's daemon..."
 eval $(minikube -p minikube docker-env)
 echo "--> Docker environment is now pointing to Minikube."
 
-# --- 3. Build Docker Images ---
+# --- 4. Build Docker Images ---
 echo "--> Building application Docker images using the Makefile..."
 make build-collector build-processor build-service build-demo
 echo "--> Docker images built successfully inside Minikube."
 
-# --- 4. Deploy to Kubernetes ---
-echo "--> Applying all Kubernetes manifests from the kube/ directory..."
-kubectl apply -f kube/
+# --- 5. Deploy to Kubernetes ---
+echo "--> Applying all Kubernetes manifests from the kube/ directory to namespace '${NAMESPACE}'..."
+kubectl apply -f kube/ -n "${NAMESPACE}"
 echo "--> Kubernetes resources deployed."
 
-# --- 5. Provide Access Instructions ---
+# --- 6. Provide Access Instructions ---
 echo ""
 echo "✅ Deployment to Minikube is complete!"
 echo ""
 echo "To access the services, you can run the following commands in your terminal:"
 echo "--------------------------------------------------------------------------"
 echo "  # To get the URL for the frontend application and open it:"
-echo "  minikube service frontend"
+echo "  minikube service frontend -n ${NAMESPACE}"
 echo ""
 echo "  # To get the URL for the Adminer database tool and open it:"
-echo "  minikube service adminer"
+echo "  minikube service adminer -n ${NAMESPACE}"
 echo ""
 echo "  # To get the URL for the backend Events API:"
-echo "  minikube service events-api --url"
+echo "  minikube service events-api -n ${NAMESPACE} --url"
 echo "--------------------------------------------------------------------------"

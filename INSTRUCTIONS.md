@@ -26,9 +26,8 @@ Before you begin, ensure you have the following tools installed on your system:
 For local development, you can use Docker Compose to run the entire application stack.
 
 1.  **Clone the repository**:
-
     ```bash
-    git clone https://github.com/wilp-bits-2024mt03053/scalable-services-assignment-1.git
+    git clone <your-repo-url>
     cd scalable-services-assignment-1
     ```
 
@@ -48,8 +47,9 @@ For a production-like environment, you can deploy the application to a local Kub
     ```
     This script will:
     - Start Minikube if it's not already running.
+    - Create the `scalable-services` namespace.
     - Build the Docker images inside Minikube.
-    - Deploy all the necessary Kubernetes resources.
+    - Deploy all the necessary Kubernetes resources to the `scalable-services` namespace.
 
 ## Accessing the Application
 
@@ -63,15 +63,15 @@ For a production-like environment, you can deploy the application to a local Kub
 
 - **Frontend Application**:
   ```bash
-  minikube service frontend
+  minikube service frontend -n scalable-services
   ```
 - **Adminer (Database Tool)**:
   ```bash
-  minikube service adminer
+  minikube service adminer -n scalable-services
   ```
 - **Events API**:
   ```bash
-  minikube service events-api --url
+  minikube service events-api -n scalable-services --url
   ```
 
 ## Formatting the Code
