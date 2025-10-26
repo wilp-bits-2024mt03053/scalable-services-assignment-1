@@ -1,5 +1,5 @@
 
-.PHONY: up down logs ps deploy clean
+.PHONY: up down logs ps deploy clean build-collector build-processor build-service build-demo
 
 deploy: clean
 	@echo "--> Environment cleaned."
@@ -32,3 +32,21 @@ topic:
 
 user-tracking-topic:
 	docker exec -it kafka kafka-topics.sh --bootstrap-server localhost:9092 --create --if-not-exists --topic user-tracking-events --replication-factor 1 --partitions 1 || true
+
+# --- Individual Image Builds for Kubernetes ---
+
+build-collector:
+	@echo "--> Building real-time-events-collector image..."
+	@docker build -t real-time-events-collector:latest ./services/real-time-events-collector
+
+build-processor:
+	@echo "--> Building real-time-events-processor image..."
+	@docker build -t real-time-events-processor:latest ./services/real-time-events-processor
+
+build-service:
+	@echo "--> Building real-time-events-service image..."
+	@docker build -t real-time-events-service:latest ./services/real-time-events-service
+
+build-demo:
+	@echo "--> Building real-time-user-tracker-demo image..."
+	@docker build -t real-time-user-tracker-demo:latest ./services/real-time-user-tracker-demo

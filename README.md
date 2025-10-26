@@ -31,12 +31,19 @@ This package has been published to the public npm registry and can be used in ot
 - [Core Technologies](#core-technologies)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
+  - [Option 1: Running with Docker Compose (Local Development)](#option-1-running-with-docker-compose-local-development)
   - [Running the Application](#running-the-application)
 - [How to Use the System](#how-to-use-the-system)
   - [Ports Used](#ports-used)
   - [1. Generate User Events](#1-generate-user-events)
   - [2. View Data in the Database](#2-view-data-in-the-database)
   - [3. Inspect Kafka Topics (Optional)](#3-inspect-kafka-topics-optional)
+  - [4. View the Analytics Dashboard](#4-view-the-analytics-dashboard)
+- [API Documentation](#api-documentation)
+  - [GET /events](#get-events)
+- [Production Setup with Minikube (Kubernetes)](#production-setup-with-minikube-kubernetes)
+  - [Prerequisites for Minikube](#prerequisites-for-minikube)
+  - [Deployment Steps](#deployment-steps)
 - [Makefile Commands](#makefile-commands)
 
 ## Architecture Overview
@@ -115,10 +122,11 @@ Follow these instructions to get the entire platform running on your local machi
 ### Prerequisites
 
 - Docker
-- Docker Compose (usually included with Docker Desktop)
+- **For Local Dev**: Docker Compose (usually included with Docker Desktop)
 - `make` (available on macOS and Linux, or via Chocolatey on Windows)
+- **For Kubernetes**: Minikube
 
-### Running the Application
+### Option 1: Running with Docker Compose (Local Development)
 
 All commands should be run from the project's root directory.
 

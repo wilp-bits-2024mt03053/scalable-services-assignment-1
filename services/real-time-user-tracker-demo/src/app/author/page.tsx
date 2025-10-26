@@ -52,17 +52,17 @@ export default function AuthorPage() {
             </div>
             <h2 className="text-lg font-semibold mb-2">Abstract</h2>
             <p className="text-base text-gray-700">
-              This project implements a comprehensive real-time data streaming pipeline using Apache Kafka, and Python-based producer and consumer applications. The system
-              demonstrates end-to-end event processing capabilities where a Python producer
-              generates synthetic JSON events, writes them to a log file, which is then tailed by
-              Apache Flume and forwarded to Apache Kafka. A Python consumer subscribes to the Kafka
-              topic and performs real-time analytics on the streaming data.
+              This project implements a comprehensive real-time data streaming pipeline. The system
+              demonstrates end-to-end event processing where user interactions on a web application
+              are captured, sent to a data stream, processed in real-time, and stored in a database
+              for analytics.
               <br />
               <br />
-              The architecture showcases modern streaming data processing patterns, containerization
-              with Docker, and resilient service integration with proper error handling and retry
-              mechanisms. The implementation serves as a foundation for understanding distributed
-              streaming systems and can be extended for production-scale data processing scenarios.
+              The architecture showcases modern streaming data processing patterns using Python,
+              FastAPI, React, Apache Kafka, and PostgreSQL. It is containerized with Docker for
+              resilience and scalability. The implementation serves as a foundation for
+              understanding distributed streaming systems and can be extended for production-scale
+              data processing scenarios.
             </p>
           </Card>
         </div>
