@@ -87,6 +87,23 @@ services:
     depends_on: # Depends on the collector to send events
       - real-time-events-collector
 
+  real-time-events-service:
+    build:
+      context: ./services/real-time-events-service
+    container_name: real-time-events-service
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-tracking_db}
+      - POSTGRES_USER=${POSTGRES_USER:-user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_HOST=postgres
+    restart: unless-stopped
+
+
   # 4. Developer Tooling
   adminer:
     image: adminer

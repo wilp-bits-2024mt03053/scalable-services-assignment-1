@@ -2,6 +2,13 @@
 
 Scalable Services Assignment 1
 
+## Authors
+
+- Balaji O M { 2024mt03025 }
+- Balasubramaniyan { 2024mt03053}
+- Deep Pokala {2024mt03042 }
+- Jagriti Sharma {2024mt03116}
+
 ## Project Details
 
 This project implements a comprehensive real-time data streaming pipeline. The system demonstrates end-to-end event processing where user interactions on a web application are captured, sent to a data stream, processed in real-time, and stored in a database for analytics.
@@ -17,13 +24,6 @@ This package has been published to the public npm registry and can be used in ot
 - **NPM Package**: react-user-tracker
 - **Version**: 0.1.2
 
-### Authors
-
-- Balaji O M
-- Balasubramaniyan
-- Deep Pokala
-- Jagriti Sharma
-
 ## Table of Contents
 
 - [Architecture Overview](#architecture-overview)
@@ -33,6 +33,7 @@ This package has been published to the public npm registry and can be used in ot
   - [Prerequisites](#prerequisites)
   - [Running the Application](#running-the-application)
 - [How to Use the System](#how-to-use-the-system)
+  - [Ports Used](#ports-used)
   - [1. Generate User Events](#1-generate-user-events)
   - [2. View Data in the Database](#2-view-data-in-the-database)
   - [3. Inspect Kafka Topics (Optional)](#3-inspect-kafka-topics-optional)
@@ -45,25 +46,29 @@ The system is designed as a multi-stage pipeline that captures user events from 
 ```mermaid
 graph TD
     subgraph "Browser"
-        A[React Frontend App <br> (localhost:3000)]
+        A["React Frontend App<br>(localhost:3000)"]
     end
 
     subgraph "Data Ingestion"
-        B[Event Collector <br> (Python/FastAPI)]
+        B["Event Collector<br>(Python/FastAPI)"]
     end
 
     subgraph "Streaming Platform"
-        C[Apache Kafka <br> (Topic: user-tracking-events)]
+        C["Apache Kafka<br>(Topic: user-tracking-events)"]
         D[Zookeeper]
     end
 
     subgraph "Data Processing & Storage"
-        E[Event Processor <br> (Python Consumer)]
-        F[PostgreSQL Database <br> (Table: user_events)]
+        E["Event Processor<br>(Python Consumer)"]
+        F["PostgreSQL Database<br>(Table: user_events)"]
+    end
+    subgraph "Data Serving"
+        H["Events API Service<br>(Python/FastAPI)"]
     end
 
+
     subgraph "Developer Tooling"
-        G[Adminer <br> (localhost:8080)]
+        G["Adminer<br>(localhost:8080)"]
     end
 
     A -- "1. User interaction (click, hover)" --> A
@@ -72,6 +77,7 @@ graph TD
     C -- "Manages Kafka Cluster" --> D
     E -- "4. Consumes event messages" --> C
     E -- "5. Inserts processed data" --> F
+    H -- "6. Queries events" --> F
     G -- "Inspects Database" --> F
 ```
 
@@ -134,6 +140,20 @@ The first time you run this, it may take a few minutes to download the base Dock
 ## How to Use the System
 
 Once `make deploy` is complete, all services are running and ready for use.
+
+### Ports Used
+
+The following ports are exposed on `localhost` for the various services:
+
+| Port   | Service                       | Description                                            |
+| :----- | :---------------------------- | :----------------------------------------------------- |
+| `3000` | `real-time-user-tracker-demo` | The main React/Next.js frontend application.           |
+| `5432` | `postgres`                    | The PostgreSQL database where events are stored.       |
+| `8000` | `real-time-events-collector`  | The FastAPI service that receives events from the web. |
+| `8001` | `real-time-events-service`    | The FastAPI service that serves stored events via API. |
+| `8080` | `adminer`                     | The web-based database management tool for PostgreSQL. |
+| `9092` | `kafka`                       | The Apache Kafka message broker for event streaming.   |
+| `2181` | `zookeeper`                   | The Zookeeper service required by Kafka.               |
 
 ### 1. Generate User Events
 
