@@ -129,10 +129,10 @@ deploy_stack() {
   envsubst < "${KUBE_DIR}/01-platform.yaml" | kubectl apply -f - -n "${NAMESPACE}"
 
   echo "--> Applying remaining manifests..."
-  for file in "${KUBE_DIR}/02-app-services.yaml" "${KUBE_DIR}/03-frontend.yaml"; do
-    echo "--> Applying ${file}..."
-    kubectl apply -f "$file" -n "${NAMESPACE}"
-  done
+  echo "--> Applying 02-app-services.yaml..."
+  kubectl apply -f "${KUBE_DIR}/02-app-services.yaml" -n "${NAMESPACE}"
+  echo "--> Applying 03-frontend.yaml..."
+  kubectl apply -f "${KUBE_DIR}/03-frontend.yaml" -n "${NAMESPACE}"
 
   wait_for_resources
 

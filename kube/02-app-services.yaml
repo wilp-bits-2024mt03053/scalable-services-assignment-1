@@ -54,7 +54,7 @@ spec:
               port: 8000
             initialDelaySeconds: 10
             periodSeconds: 15
-
+---
 # --- Event Processor Service ---
 apiVersion: apps/v1
 kind: Deployment
@@ -111,7 +111,7 @@ spec:
                 - "pg_isready -h postgres -p 5432 -U $POSTGRES_USER"
             initialDelaySeconds: 20
             periodSeconds: 30
-
+---
 # --- Events API Service ---
 apiVersion: v1
 kind: Service
@@ -179,7 +179,7 @@ spec:
               port: 8001
             initialDelaySeconds: 10
             periodSeconds: 20
-
+---
 # --- Adminer (Database UI) ---
 apiVersion: v1
 kind: Service
