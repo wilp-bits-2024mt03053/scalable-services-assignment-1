@@ -49,7 +49,7 @@ wait_for_resources() {
 
   for sts in "${STATEFULSETS[@]}"; do
     echo "--> Waiting for StatefulSet '${sts}' to be ready..."
-    if ! kubectl rollout status "statefulset/${sts}" -n "${NAMESPACE}" --timeout=5m; then
+    if ! kubectl rollout status "statefulset/${sts}" -n "${NAMESPACE}" --timeout=2m; then
       echo "❌ StatefulSet '${sts}' failed to roll out."
       echo "   Check pod status with: kubectl get pods -n ${NAMESPACE} -l app=${sts}"
       echo "   Check pod logs with: kubectl logs -l app=${sts} -n ${NAMESPACE}"
@@ -60,7 +60,7 @@ wait_for_resources() {
 
   for deployment in "${DEPLOYMENTS[@]}"; do
     echo "--> Waiting for Deployment '${deployment}' to be ready..."
-    if ! kubectl rollout status "deployment/${deployment}" -n "${NAMESPACE}" --timeout=5m; then
+    if ! kubectl rollout status "deployment/${deployment}" -n "${NAMESPACE}" --timeout=2m; then
       echo "❌ Deployment '${deployment}' failed to roll out."
       echo "   Check pod status with: kubectl get pods -n ${NAMESPACE} -l app=${deployment}"
       echo "   Check pod logs with: kubectl logs -l app=${deployment} -n ${NAMESPACE}"

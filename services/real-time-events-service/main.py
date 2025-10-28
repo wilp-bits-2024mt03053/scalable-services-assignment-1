@@ -41,6 +41,11 @@ def get_db_connection():
             conn.close()
 
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+
 @app.get("/events", response_model=List[dict])
 def get_events(
     conn=Depends(get_db_connection),

@@ -42,8 +42,10 @@ spec:
             - containerPort: 3000
           env:
             # Backend API inside the cluster
-            - name: NEXT_PUBLIC_API_BASE_URL
-              value: 'http://events-api:8001'
+            - name: NEXT_PUBLIC_API_EVENTS_URL
+              value: 'http://events-api:8001/events'
+            - name: NEXT_PUBLIC_API_TRACK_URL
+              value: 'http://events-collector:8000/track'
 
           # Health checks for stability
           readinessProbe:
@@ -58,3 +60,24 @@ spec:
               port: 3000
             initialDelaySeconds: 20
             periodSeconds: 30
+---
+# --- HPA for Frontend ---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: frontend-hpa
+  namespace: scalable-services
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: frontend
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50

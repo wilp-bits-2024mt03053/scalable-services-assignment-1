@@ -36,12 +36,12 @@ spec:
       containers:
         - name: events-collector
           image: real-time-events-collector:latest
-          imagePullPolicy: Never   # Change to IfNotPresent if using Docker Hub
+          imagePullPolicy: Never # Change to IfNotPresent if using Docker Hub
           ports:
             - containerPort: 8000
           env:
             - name: KAFKA_BOOTSTRAP_SERVERS
-              value: "kafka.scalable-services.svc.cluster.local:9092"
+              value: 'kafka.scalable-services.svc.cluster.local:9092'
           readinessProbe:
             httpGet:
               path: /health
@@ -77,9 +77,9 @@ spec:
           imagePullPolicy: Never
           env:
             - name: KAFKA_BOOTSTRAP_SERVERS
-              value: "kafka.scalable-services.svc.cluster.local:9092"
+              value: 'kafka.scalable-services.svc.cluster.local:9092'
             - name: POSTGRES_HOST
-              value: "postgres"
+              value: 'postgres'
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
@@ -100,16 +100,16 @@ spec:
               command:
                 - sh
                 - -c
-                - "pg_isready -h postgres -p 5432 -U $POSTGRES_USER"
-            initialDelaySeconds: 10
+                - 'pg_isready -h postgres -p 5432 -U $POSTGRES_USER'
+            initialDelaySeconds: 30
             periodSeconds: 10
           livenessProbe:
             exec:
               command:
                 - sh
                 - -c
-                - "pg_isready -h postgres -p 5432 -U $POSTGRES_USER"
-            initialDelaySeconds: 20
+                - 'pg_isready -h postgres -p 5432 -U $POSTGRES_USER'
+            initialDelaySeconds: 300
             periodSeconds: 30
 ---
 # --- Events API Service ---
@@ -151,7 +151,7 @@ spec:
             - containerPort: 8001
           env:
             - name: POSTGRES_HOST
-              value: "postgres"
+              value: 'postgres'
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
@@ -228,3 +228,64 @@ spec:
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 20
+---
+# --- HPA for App Services ---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: events-collector-hpa
+  namespace: scalable-services
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: events-collector
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: events-processor-hpa
+  namespace: scalable-services
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: events-processor
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: events-api-hpa
+  namespace: scalable-services
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: events-api
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
