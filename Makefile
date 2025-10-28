@@ -1,31 +1,50 @@
 
-.PHONY: up down logs ps deploy clean build-collector build-processor build-service build-demo
+.PHONY: up-dev down-dev logs-dev ps-dev up-prod down-prod logs-prod ps-prod deploy clean build-collector build-processor build-service build-demo
 
+# --- Development Commands ---
+up-dev:
+	@echo "--> Starting development environment..."
+	@docker compose -f docker-compose.dev.yml up -d --build
+
+down-dev:
+	@echo "--> Stopping development environment..."
+	@docker compose -f docker-compose.dev.yml down -v
+
+logs-dev:
+	@docker compose -f docker-compose.dev.yml logs -f --tail=200
+
+ps-dev:
+	@docker compose -f docker-compose.dev.yml ps
+
+# --- Production Commands ---
+up-prod:
+	@echo "--> Starting production environment..."
+	@docker compose -f docker-compose.yml up -d
+
+down-prod:
+	@echo "--> Stopping production environment..."
+	@docker compose -f docker-compose.yml down -v
+
+logs-prod:
+	@docker compose -f docker-compose.yml logs -f --tail=200
+
+ps-prod:
+	@docker compose -f docker-compose.yml ps
+
+# --- Deployment ---
 deploy: clean
 	@echo "--> Environment cleaned."
 	@echo "--> Building and starting services..."
-	@$(MAKE) up
+	@$(MAKE) up-prod
 	@echo "--> Waiting for Kafka to be ready..."
 	@sleep 10
 	@echo "--> Creating Kafka topic 'user-tracking-events'..."
 	@$(MAKE) user-tracking-topic
 	@echo "--> Deployment complete. Services are up and topic is created."
 
-up:
-	docker compose up -d --build
-
 clean:
 	@echo "--> Cleaning up existing containers, networks, and volumes..."
-	@$(MAKE) down
-
-down:
-	docker compose down -v
-
-logs:
-	docker compose logs -f --tail=200
-
-ps:
-	docker compose ps
+	@$(MAKE) down-prod
 
 topic:
 	docker exec -it kafka kafka-topics.sh --bootstrap-server localhost:9092 --create --if-not-exists --topic events --replication-factor 1 --partitions 1 || true

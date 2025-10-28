@@ -19,11 +19,15 @@ producer = KafkaProducer(
 
 @app.route("/track", methods=["POST"])
 def track_event():
+    print("--- New track request ---")
     data = request.get_json()
-    print("Received payload:", data)
+    print("Received payload:", json.dumps(data, indent=2))
     if not data or "events" not in data:
         print("Invalid payload received!")
-        return jsonify({"error": "Invalid payload"}), 400
+        response = jsonify({"error": "Invalid payload"})
+        response.status_code = 400
+        print(f"Sending response: {response.status_code}")
+        return response
 
     for event in data["events"]:
         print(f"Sending event to Kafka: {event}")
@@ -31,7 +35,10 @@ def track_event():
 
     producer.flush()
     print("All events sent and flushed to Kafka.")
-    return jsonify({"status": "ok"}), 200
+    response = jsonify({"status": "ok"})
+    response.status_code = 200
+    print(f"Sending response: {response.status_code}")
+    return response
 
 
 if __name__ == "__main__":

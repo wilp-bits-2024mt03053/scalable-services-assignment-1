@@ -55,7 +55,7 @@ export default function AnalyticsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001/events';
+        const API_BASE_URL = '/api/events';
         const [eventsRes, clicksRes, hoversRes, componentRes, pageRes] = await Promise.all([
           fetch(`${API_BASE_URL}?limit=10`),
           fetch(`${API_BASE_URL}?event_type=CLICK&limit=5`),

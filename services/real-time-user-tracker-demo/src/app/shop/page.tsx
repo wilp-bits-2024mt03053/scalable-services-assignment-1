@@ -235,21 +235,16 @@ export default function ShopPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-20">
         {products.length === 0
           ? Array.from({ length: 6 }).map((_, i) => <ProductSkeleton key={i} />)
-          : products.map(
-              (product, index) => (
-                console.log('Rendering product:', product),
-                (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onAddToCart={handleAddToCart}
-                    isLoading={addingToCart === product.id}
-                    priority={index < 6}
-                    productIndex={index}
-                  />
-                )
-              )
-            )}
+          : products.map((product, index) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={handleAddToCart}
+                isLoading={addingToCart === product.id}
+                priority={index < 6}
+                productIndex={index}
+              />
+            ))}
       </div>
     </DashboardLayout>
   );

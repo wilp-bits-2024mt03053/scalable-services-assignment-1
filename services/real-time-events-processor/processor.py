@@ -92,7 +92,7 @@ def main() -> None:
         with conn.cursor() as cur:
             for message in consumer:
                 event = message.value
-                print(f"Processing event: {event}", flush=True)
+                print(f"Processing event: {event.get('event_id')}", flush=True)
                 cur.execute(
                     """
                     INSERT INTO user_events (
@@ -114,6 +114,7 @@ def main() -> None:
                     ),
                 )
                 conn.commit()
+                print(f"Successfully saved event: {event.get('event_id')}", flush=True)
     except KeyboardInterrupt:
         print("Processor interrupted, exiting...", file=sys.stderr)
     finally:

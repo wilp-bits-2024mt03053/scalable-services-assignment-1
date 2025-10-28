@@ -54,6 +54,9 @@ def get_events(
     Retrieves user events from the database, with optional filtering.
     Returns the last N matching records, ordered by the most recently received.
     """
+    print(f"--- New events request ---")
+    print(f"Parameters: event_type={event_type}, location_type={location_type}, component_name={component_name}, page_path={page_path}, limit={limit}")
+
     query = "SELECT * FROM user_events"
     conditions = []
     params = []
@@ -84,4 +87,6 @@ def get_events(
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(query, tuple(params) + (limit,))
         events = cur.fetchall()
+    
+    print(f"Returning {len(events)} events.")
     return events

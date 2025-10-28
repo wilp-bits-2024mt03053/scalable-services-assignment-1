@@ -70,6 +70,23 @@ graph TD
 6.  **Serving**: The **Events API** provides an endpoint to query the stored events.
 7.  **Inspection**: Developers can use **Adminer** to connect to the database and view the data.
 
+### From Service to Production: Design and Deployment
+
+This project is designed for scalability and portability, progressing from individual services to a fully orchestrated deployment.
+
+- **Service-Level Design**: Each component in the `services/` directory is a self-contained microservice with a specific responsibility (e.g., `real-time-events-collector` for ingestion, `real-time-events-processor` for processing). This separation of concerns allows for independent development, scaling, and maintenance.
+
+- **Dockerization**: Every service includes a `Dockerfile` that packages its source code, dependencies, and runtime into a lightweight, portable container image. This ensures that each service runs in an identical and isolated environment, whether on a local machine or in a cloud-based cluster.
+
+- **Local Development with Docker Compose**: The `docker-compose.yml` file defines the entire multi-service application stack for local development. It orchestrates the containers, networks, and volumes, allowing you to spin up the whole system with a single command (`make deploy`). This is ideal for testing the interactions between services in a controlled environment.
+
+- **Kubernetes Deployment with Minikube**: For a production-like environment, the project uses Kubernetes. The manifests in the `kube/` directory define how each service is deployed, configured, and exposed.
+  - `01-platform.yaml`: Sets up the core infrastructure, including Kafka, Zookeeper, and PostgreSQL.
+  - `02-app-services.yaml`: Deploys the backend microservices (collector, processor, and API).
+  - `03-frontend.yaml`: Deploys the user-facing web application.
+  
+The `deploy-minikube.sh` script automates the process of building images and applying these manifests to a local Minikube cluster, simulating a real-world cloud deployment.
+
 ## Core Technologies
 
 - **Frontend**: React (Next.js)
