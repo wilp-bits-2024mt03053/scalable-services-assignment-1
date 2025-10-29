@@ -11,8 +11,8 @@ from psycopg2 import OperationalError
 
 def get_db_connection():
     """Establishes a connection to the PostgreSQL database with retry logic."""
-    max_attempts = int(os.environ.get("DB_CONNECT_MAX_ATTEMPTS", "60"))
-    backoff_seconds = float(os.environ.get("DB_CONNECT_BACKOFF_SEC", "2.0"))
+    max_attempts = int(os.environ.get("DB_CONNECT_MAX_ATTEMPTS", "80"))
+    backoff_seconds = float(os.environ.get("DB_CONNECT_BACKOFF_SEC", "10.0"))
     attempt = 0
     while True:
         attempt += 1

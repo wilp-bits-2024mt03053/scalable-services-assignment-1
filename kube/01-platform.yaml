@@ -174,3 +174,13 @@ spec:
           envFrom:
             - secretRef:
                 name: postgres-secret
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'pg_isready -U $POSTGRES_USER -d $POSTGRES_DB'
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 5

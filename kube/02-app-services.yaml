@@ -71,6 +71,26 @@ spec:
       labels:
         app: events-processor
     spec:
+      initContainers:
+        - name: wait-for-kafka-topic
+          image: confluentinc/cp-kafka:7.0.1
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Kafka topic 'user-tracking-events'..."
+              until kafka-topics --bootstrap-server kafka.scalable-services.svc.cluster.local:9092 --list | grep -q 'user-tracking-events'; do
+                echo "Topic not found yet, sleeping..."
+                sleep 5
+              done
+              echo "Topic 'user-tracking-events' found!"
+        - name: wait-for-postgres
+          image: postgres:13
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+          command: ['sh', '-c', 'until pg_isready -h postgres -p 5432 -U $POSTGRES_USER; do echo "Waiting for PostgreSQL..."; sleep 2; done;']
+    spec:
       containers:
         - name: events-processor
           image: real-time-events-processor:latest

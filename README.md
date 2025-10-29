@@ -84,7 +84,7 @@ This project is designed for scalability and portability, progressing from indiv
   - `01-platform.yaml`: Sets up the core infrastructure, including Kafka, Zookeeper, and PostgreSQL.
   - `02-app-services.yaml`: Deploys the backend microservices (collector, processor, and API).
   - `03-frontend.yaml`: Deploys the user-facing web application.
-  
+
 The `deploy-minikube.sh` script automates the process of building images and applying these manifests to a local Minikube cluster, simulating a real-world cloud deployment.
 
 ## Core Technologies
@@ -104,6 +104,7 @@ This project can be run in two ways: in a production-like Kubernetes environment
 ### Prerequisites
 
 Ensure you have the following tools installed:
+
 - **Docker**: [Installation Guide](https://docs.docker.com/get-docker/)
 - **Minikube**: [Installation Guide](https://minikube.sigs.k8s.io/docs/start/)
 - **kubectl**: [Installation Guide](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
@@ -115,16 +116,20 @@ Ensure you have the following tools installed:
 This is the recommended approach for a complete, production-like deployment. The `deploy-minikube.sh` script automates the entire process.
 
 1.  **Clone the repository**:
+
     ```bash
     git clone https://github.com/wilp-bits-2024mt03053/scalable-services-assignment-1.git
     cd scalable-services-assignment-1
     ```
 
 2.  **Run the deployment script**:
+
     ```bash
     ./deploy-minikube.sh deploy
     ```
+
     This script will:
+
     - Start Minikube if it's not already running.
     - Set the Docker environment to point to Minikube's Docker daemon.
     - Build all service images directly within Minikube.
@@ -144,7 +149,8 @@ For local development and testing, you can use Docker Compose and `make`.
 1.  **Clone the repository** (if you haven't already).
 
 2.  **Deploy the stack**:
-    This command builds the images and starts all services.
+    This command builds the required Docker images (if they don't already exist) and starts all services in detached mode.
+
     ```bash
     make deploy
     ```
@@ -154,6 +160,26 @@ For local development and testing, you can use Docker Compose and `make`.
     ```bash
     make clean
     ```
+
+### Building Individual Service Images
+
+If you need to build or rebuild a specific service's Docker image without running the full deployment, you can use the dedicated `make` commands. This is particularly useful during development or before a manual Kubernetes deployment.
+
+The images are built with the `:latest` tag and are required by both Docker Compose and the Minikube deployment script.
+
+```bash
+# Build the event collector image
+make build-collector
+
+# Build the event processor image
+make build-processor
+
+# Build the events API image
+make build-service
+
+# Build the frontend demo application image
+make build-demo
+```
 
 ## Accessing Services
 
@@ -169,14 +195,15 @@ The `deploy-minikube.sh` script will provide you with the correct commands to ac
 
 The services are exposed on `localhost` at the following ports:
 
-| Port   | Service                       | URL                               |
-| :----- | :---------------------------- | :-------------------------------- |
-| `3000` | Frontend App                  | [http://localhost:3000](http://localhost:3000) |
-| `8080` | Adminer (Database UI)         | [http://localhost:8080](http://localhost:8080) |
-| `8001` | Events API                    | [http://localhost:8001/events](http://localhost:8001/events) |
-| `8000` | Event Collector               | N/A (used internally by frontend) |
+| Port   | Service               | URL                                                          |
+| :----- | :-------------------- | :----------------------------------------------------------- |
+| `3000` | Frontend App          | [http://localhost:3000](http://localhost:3000)               |
+| `8080` | Adminer (Database UI) | [http://localhost:8080](http://localhost:8080)               |
+| `8001` | Events API            | [http://localhost:8001/events](http://localhost:8001/events) |
+| `8000` | Event Collector       | N/A (used internally by frontend)                            |
 
 To log in to Adminer, use the following credentials:
+
 - **System**: `PostgreSQL`
 - **Server**: `postgres`
 - **Username**: `user`
@@ -195,14 +222,17 @@ A helper script is provided to format all code in the repository.
 
 The `Makefile` provides shortcuts for managing the Docker Compose environment.
 
-| Command                | Description                                                              |
-| :--------------------- | :----------------------------------------------------------------------- |
-| `make deploy`          | Cleans the environment and deploys all services from scratch.            |
-| `make up`              | Builds and starts all services without cleaning.                         |
-| `make down`            | Stops and removes all containers and networks.                           |
-| `make clean`           | Stops and removes containers, networks, **and volumes** (data is lost).  |
-| `make logs`            | Tails the logs from all running services.                                |
-| `make build-*`         | Builds a specific service image (e.g., `make build-collector`).          |
+| Command                | Description                                                               |
+| :--------------------- | :------------------------------------------------------------------------ |
+| `make deploy`          | Cleans the environment, builds images if needed, and starts all services. |
+| `make up-prod`         | Starts all services without cleaning first.                               |
+| `make down-prod`       | Stops and removes all containers and networks.                            |
+| `make clean`           | Stops and removes containers, networks, **and volumes** (data is lost).   |
+| `make logs-prod`       | Tails the logs from all running services.                                 |
+| `make build-collector` | Builds the `real-time-events-collector` image.                            |
+| `make build-processor` | Builds the `real-time-events-processor` image.                            |
+| `make build-service`   | Builds the `real-time-events-service` image.                              |
+| `make build-demo`      | Builds the `real-time-user-tracker-demo` image.                           |
 
 ## Directory Structure
 
