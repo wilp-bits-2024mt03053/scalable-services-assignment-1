@@ -2,6 +2,7 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
+
 RUN npm install --frozen-lockfile || npm install
 
 # Build the Next.js app

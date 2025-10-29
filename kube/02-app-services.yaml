@@ -89,7 +89,7 @@ spec:
           envFrom:
             - secretRef:
                 name: postgres-secret
-          command: ['sh', '-c', 'until pg_isready -h postgres -p 5432 -U $POSTGRES_USER; do echo "Waiting for PostgreSQL..."; sleep 2; done;']
+          command: ['sh', '-c', 'until pg_isready -h postgres.scalable-services.svc.cluster.local -p 5432 -U $POSTGRES_USER; do echo "Waiting for PostgreSQL..."; sleep 2; done;']
     spec:
       containers:
         - name: events-processor
@@ -99,7 +99,7 @@ spec:
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: 'kafka.scalable-services.svc.cluster.local:9092'
             - name: POSTGRES_HOST
-              value: 'postgres'
+              value: 'postgres.scalable-services.svc.cluster.local'
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
@@ -115,22 +115,7 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_DB
-          readinessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - 'pg_isready -h postgres -p 5432 -U $POSTGRES_USER'
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          livenessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - 'pg_isready -h postgres -p 5432 -U $POSTGRES_USER'
-            initialDelaySeconds: 300
-            periodSeconds: 30
+
 ---
 # --- Events API Service ---
 apiVersion: v1
@@ -171,7 +156,7 @@ spec:
             - containerPort: 8001
           env:
             - name: POSTGRES_HOST
-              value: 'postgres'
+              value: 'postgres.scalable-services.svc.cluster.local'
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:

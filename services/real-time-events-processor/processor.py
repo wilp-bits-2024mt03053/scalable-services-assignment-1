@@ -21,12 +21,13 @@ def get_db_connection():
                 dbname=os.environ.get("POSTGRES_DB", "tracking_db"),
                 user=os.environ.get("POSTGRES_USER", "user"),
                 password=os.environ.get("POSTGRES_PASSWORD", "password"),
-                host=os.environ.get("POSTGRES_HOST", "postgres"),
-                port=os.environ.get("POSTGRES_PORT", "5432"),
+                host=os.environ.get("POSTGRES_HOST", "postgres.scalable-services.svc.cluster.local"),
+                port=5432,
             )
             print("Successfully connected to PostgreSQL.", flush=True)
             return conn
         except OperationalError as e:
+            print(f"DB connect error: {e}", file=sys.stderr, flush=True)
             if attempt >= max_attempts:
                 print(
                     f"Failed to connect to PostgreSQL after {attempt} attempts: {e}",
