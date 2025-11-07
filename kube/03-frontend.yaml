@@ -36,8 +36,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: real-time-user-tracker-demo:latest
-          imagePullPolicy: Never # Change to IfNotPresent if image comes from registry
+          image: real-time-user-tracker-demo:latest # Using local image
+          imagePullPolicy: IfNotPresent # Change to IfNotPresent if image comes from registry
           ports:
             - containerPort: 3000
           env:

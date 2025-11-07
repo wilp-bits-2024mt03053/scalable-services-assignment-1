@@ -35,8 +35,8 @@ spec:
     spec:
       containers:
         - name: events-collector
-          image: real-time-events-collector:latest
-          imagePullPolicy: Never # Change to IfNotPresent if using Docker Hub
+          image: real-time-events-collector:latest # Using local image
+          imagePullPolicy: IfNotPresent # Change to IfNotPresent if using Docker Hub
           ports:
             - containerPort: 8000
           env:
@@ -93,8 +93,8 @@ spec:
     spec:
       containers:
         - name: events-processor
-          image: real-time-events-processor:latest
-          imagePullPolicy: Never
+          image: real-time-events-processor:latest # Using local image
+          imagePullPolicy: IfNotPresent
           env:
             - name: KAFKA_BOOTSTRAP_SERVERS
               value: 'kafka.scalable-services.svc.cluster.local:9092'
@@ -150,8 +150,8 @@ spec:
     spec:
       containers:
         - name: events-api
-          image: real-time-events-service:latest
-          imagePullPolicy: Never
+          image: real-time-events-service:latest # Using local image
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8001
           env:
@@ -285,7 +285,7 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: events-api
-  minReplicas: 1
+  minReplicas: 2
   maxReplicas: 5
   metrics:
     - type: Resource

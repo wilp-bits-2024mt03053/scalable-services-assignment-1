@@ -51,7 +51,7 @@ services:
 
   real-time-events-collector:
     image: real-time-events-collector:latest
-    image_pull_policy: Never
+    pull_policy: if_not_present
     container_name: real-time-events-collector
     ports:
       - "8000:8000"
@@ -63,7 +63,7 @@ services:
 
   real-time-events-processor:
     image: real-time-events-processor:latest
-    image_pull_policy: Never
+    pull_policy: if_not_present
     container_name: real-time-events-processor
     depends_on:
       kafka:
@@ -81,7 +81,7 @@ services:
   # 3. Frontend Application
   real-time-user-tracker-demo:
     image: real-time-user-tracker-demo:latest
-    image_pull_policy: Never
+    pull_policy: if_not_present
     container_name: real-time-user-tracker-demo
     ports:
       - "3000:3000"
@@ -95,7 +95,7 @@ services:
 
   real-time-events-service:
     image: real-time-events-service:latest
-    image_pull_policy: Never
+    pull_policy: if_not_present
     container_name: real-time-events-service
     ports:
       - "8001:8001"
